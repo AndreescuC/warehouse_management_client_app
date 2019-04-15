@@ -17,5 +17,5 @@ RUN pip3 install pika
 RUN mkdir /var/client-app
 COPY *.py /var/client-app/
 
-#CMD python3 /var/client-app/main.py
-CMD tail -f /dev/null
+CMD python3 /var/client-app/main.py
+#CMD tail -f /dev/null

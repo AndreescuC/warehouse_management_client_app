@@ -1,9 +1,18 @@
 import pika
 import json
+import time
 
 
 PORT = 8003
 HOST = "localhost"
+
+
+def test_connection():
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+    except:
+        time.sleep(5)
+        test_connection()
 
 
 class AsyncMessageManager:
@@ -11,6 +20,8 @@ class AsyncMessageManager:
         self.storage_bridge = storage_bridge
         self.populated = False
 
+        test_connection()
+        
         shipment_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
         self.shipment_channel = shipment_connection.channel()
         self.shipment_channel.queue_declare(queue='shipment', durable=True)
