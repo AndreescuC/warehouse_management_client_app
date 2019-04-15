@@ -23,16 +23,16 @@ class AsyncMessageManager:
 
         test_connection()
 
-        shipment_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
-        self.shipment_channel = shipment_connection.channel()
+        self.shipment_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+        self.shipment_channel = self.shipment_connection.channel()
         self.shipment_channel.queue_declare(queue='shipment', durable=True)
 
-        order_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
-        self.order_channel = order_connection.channel()
+        self.order_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+        self.order_channel = self.order_connection.channel()
         self.order_channel.queue_declare(queue='order', durable=True)
 
-        order_done_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
-        self.order_done_channel = order_done_connection.channel()
+        self.order_done_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+        self.order_done_channel = self.order_done_connection.channel()
         self.order_done_channel.queue_declare(queue='order_done', durable=True)
 
     def receive(self):
@@ -50,6 +50,9 @@ class AsyncMessageManager:
         message = json.dumps({'content': message})
         headers = {'content_type': 'text/plain', 'type': 'App\Service\Message\RabbitMqMessageOrder'}
         properties = pika.BasicProperties(content_type='text/plain', type='App\Service\Message\RabbitMqMessageOrder', headers=headers)
+        if self.order_connection.is_closed:
+            self.order_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+            self.order_channel = self.order_connection.channel()
         self.order_channel.basic_publish(exchange='', routing_key='order', body=message, properties=properties)
         print("[x] Sent shipment id message: ", message)
 
@@ -60,6 +63,9 @@ class AsyncMessageManager:
             message = json.dumps({'content': message})
             headers = {'content_type': 'text/plain', 'type': 'App\Service\Message\RabbitMqMessageOrderDone'}
             properties = pika.BasicProperties(content_type='text/plain', type='App\Service\Message\RabbitMqMessageOrderDone', headers=headers)
+            if self.order_done_connection.is_closed:
+                self.order_done_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+                self.order_done_channel = self.order_connection.channel()
             self.order_done_channel.basic_publish(exchange='', routing_key='order_done', body=message, properties=properties)
             print("[x] Sent order done message: ", message)
 
