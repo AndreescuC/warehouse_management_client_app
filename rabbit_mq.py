@@ -10,6 +10,7 @@ HOST = "localhost"
 def test_connection():
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
+        connection.close()
     except:
         time.sleep(5)
         test_connection()
@@ -21,7 +22,7 @@ class AsyncMessageManager:
         self.populated = False
 
         test_connection()
-        
+
         shipment_connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST, port=PORT))
         self.shipment_channel = shipment_connection.channel()
         self.shipment_channel.queue_declare(queue='shipment', durable=True)
